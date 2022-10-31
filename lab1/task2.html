@@ -8,7 +8,12 @@
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<title>task2.R</title>
+
+<meta name="author" content="Nelli" />
+
+<meta name="date" content="2022-10-31" />
+
+<title>Task2</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -345,15 +350,15 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Лабораторная работа 1. Задание №2</h1>
+<h1 class="title toc-ignore">Task2</h1>
+<h4 class="author">Nelli</h4>
+<h4 class="date">2022-10-31</h4>
 
 </div>
 
 
 <pre class="r"><code>get_id &lt;- function(df) {
-  # слияние
-  new_df &lt;- Reduce(function(x, y) merge(x, y, all=TRUE, by = &quot;id&quot;), df) 
-  # нахождение среднего
+  new_df &lt;- Reduce(function(x, y) merge(x, y, all=TRUE, by = &quot;id&quot;), df)
   result &lt;- data.frame(id=new_df[, 1], mean=rowMeans(new_df[, -1]))
   return (result[complete.cases(result), ])
 }
