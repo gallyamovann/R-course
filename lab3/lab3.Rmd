@@ -1,0 +1,185 @@
+---
+title: "Лабораторная работа №3"
+author: "Nelli Gallyamova"
+date: "31/12/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+### Задание 5
+
+\_trades.RData\_ Объедините таблицы в одну, уберите столбец с территорией торговли, т.к. там только Евросоюз, оставим только строки с экспортом и импортом, вынесете данные по экспорту и импорту в отдельные переменные. Отобразите структуру экспорта продукции из Евросоюза по ведущим партнерам в виде круговых диаграммы на одном рисунке. Обозначьте разные группы экспортируемых товаров разными цветами. Для каждого партера подпишите значение экспорта. Для каждого партнера подпишите какова доля (процент) каждой из групп экспортируемых товаров в общем экспорте. Отрегулируйте местоположение подписей так, чтобы рисунок был максимально наглядным. Придумайте новые названия графика и осей.
+
+Импортируем необходимые библиотеки:
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+Получаем данные:
+
+```{r}
+get_merged_data <- function(data) {
+  df <- data.frame(Reduce(function(x, y) rbind(x, y), data))
+  df <- df[,!names(df) %in% c("geo")]
+  return(df)
+}
+```
+
+Загрузим данные:
+
+```{r}
+load('data/trades.RData')
+data <- get_merged_data(trades)
+```
+
+Отфильтруем по импорту / экспорту:
+
+```{r}
+import <- data %>% filter(indic_et == 'Imports in million of ECU/EURO')
+export <- data %>% filter(indic_et=='Exports in million of ECU/EURO')
+```
+
+Находим основных партнеров:
+
+```{r}
+main_partners <- export[export$values >= 20000, ]
+main_partners <- main_partners %>%
+  group_by(partner, sitc06) %>%
+  summarise(values = sum(values, na.rm = TRUE))
+```
+
+Строим график по основным партнерам:
+
+```{r, fig.height=15, fig.width=15}
+ggplot(main_partners, aes(x = partner, y = values, fill = sitc06)) +
+  geom_col(width = 1) +
+  xlab('Страны-партнеры') +
+  ylab('Объем экспорта') +
+  ggtitle('Ведущие страны по экспорту') +
+  geom_text(aes(label = values), size=5, position = position_stack(vjust = 0.5)) +
+  scale_fill_discrete(name = 'Экспортируемые товары') + coord_polar("y", 0)
+```
+
+Находим доли экспортируемых товаров:
+
+```{r}
+share <- data %>% filter(indic_et == 'Share of exports by partner (%)')
+share_data <- cbind(export, share = share$values)
+dates <- unique(share_data$time)
+```
+
+Строим график для долей по годам:
+
+```{r, fig.height=15, fig.width=15}
+for (i in 1:length(dates)) {
+export_data = subset(share_data, share_data$time == dates[i] & share_data$values >= 20000)
+print(ggplot(export_data, aes(x = partner, y = values, fill = sitc06)) +
+    geom_col(width = 1) +
+    xlab('Страны-партнеры') +
+    ylab('Объем экспорта') +
+    ggtitle(paste('Ведущие страны по экспорту в Европе ', substring(dates[i],1,4), ' г.')) +
+    scale_fill_discrete(name = 'Экспортируемые товары') +
+    geom_text(aes(label = share), size=5, position = position_stack(vjust = 0.5)) + coord_polar("y", 0)) 
+}
+```
+
+### Задание 10
+
+Удалите строки, в которых есть пропущенные значения и приведите данные к формату tidydata. Отобразите динамику лесовосстановления по годам с помощью линейного графика для любого из федеральных округов, просуммировав значения соотвествующих субъектов федерации. Подпишите значения на графике. Для минимального значения сделайте подпись красным цветом. Отрегулируйте местоположение подписей так, чтобы рисунок был максимально наглядным. Придумайте новые назания графика и осей.
+
+Импортируем необходимые библиотеки:
+
+```{r}
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+```
+
+Считываем данные:
+
+```{r}
+data <- read.csv("data/reforest.csv")
+```
+
+Переводим "численные строки" в численные значения:
+
+```{r}
+for (i in 2:length(names(data))) {
+  data[[i]] <- as.numeric(data[[i]])
+}
+```
+
+Убираем пропущенные значения:
+
+```{r}
+data_complete_cases <- data[complete.cases(data),]
+```
+
+Находим строки в колонке Регион, в которых есть подстрока "федерельный округ":
+
+```{r}
+num_start_fed <- grepl('федеральный округ', data_complete_cases$Region)
+```
+
+Получаем индексы, с которых начинается каждый федеральный округ в таблице:
+
+```{r}
+numbers <- which(num_start_fed == "TRUE")
+```
+
+Выберем федеральный округ:
+
+```{r}
+num <- 3
+```
+
+Получим начало строк и конец строк для выбранного федерального округа:
+
+```{r}
+start <- numbers[num] + 1
+end <- numbers[num + 1] - 1
+```
+Составим новую таблицу из строк, выбранных для определенного федерального округа:
+```{r}
+new_tb <- data_complete_cases[start:end, ]
+```
+Переведем данные в формат:
+```{r}
+new_data <- new_tb %>%
+  pivot_longer(cols = !Region, names_to = "Year", values_to = "Value")
+```
+Получим суммарные значения:
+```{r}
+new <- new_data %>% group_by(Region) %>% mutate(Sum = sum(Value))
+```
+Получим value с минимальным суммарным значением:
+```{r}
+region <- new[which.min(new$Sum),]
+name_of_region <- region$Region
+new <-new[order(new$Region, decreasing=FALSE),]
+```
+Создадим цветовую палитру:
+```{r}
+dfcolors <- data.frame(color='yellow', vec = unique(new$Region), stringsAsFactors=F)
+```
+Поменяем цвет у минимального суммарного значения на красный:
+```{r}
+dfcolors$color[dfcolors$vec==name_of_region] <-'red'
+values <- new[which(new$Region == region$Region), ]
+```
+Построим график:
+```{r}
+ggplot(new, aes(x=Year, y=Value, color = Region)) +
+  geom_line(aes(group = Region), size=1) +
+  geom_point(aes(group = Region), size=1) +
+  xlab("Год") +
+  ylab("Площадь, га") +
+  scale_color_manual(values = dfcolors$color, labels=dfcolors$vec)+
+  geom_text(aes(label = Value), show_guide=F, vjust=-0.4,
+            position = position_dodge(width = 0.7),size=3, color = "black")
+```
