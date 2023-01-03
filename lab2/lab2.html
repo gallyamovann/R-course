@@ -486,10 +486,10 @@ print(data)</code></pre>
   data &lt;- data[order(data[&#39;AvgPayment&#39;], na.last = TRUE, decreasing = FALSE),]
   rows &lt;- which(data$Lower.EstimateTmp &lt; money)
   if (length(rows) == 0) {
-    return(paste(&quot;You need - &quot;, min(data$Lower.Estimate)))
+    return(paste(&quot;You need -&quot;, min(data$Lower.Estimate)))
   } else {
     data &lt;- data[rows,]
-    data &lt;- data %&gt;% select(Facility.Name, City, Address, Lower.Estimate, Higher.Estimate, AvgPayment)
+    data &lt;- data %&gt;% select(Facility.Name, City, Address, Lower.Estimate, Higher.Estimate)
     return(data)
   }
 }</code></pre>
@@ -497,7 +497,35 @@ print(data)</code></pre>
 <pre class="r"><code>data &lt;- read.csv(&#39;data/Payment_and_Value_of_Care-Hospital.csv&#39;)
 result &lt;- getList(data, &quot;AL&quot;, &quot;pneumonia&quot;, 2000)
 print(result)</code></pre>
-<pre><code>## [1] &quot;You need -  $14,569&quot;</code></pre>
+<pre><code>## [1] &quot;You need - $14,569&quot;</code></pre>
+<p>Продемонстрируем работу на другом примере:</p>
+<pre class="r"><code>data &lt;- read.csv(&#39;data/Payment_and_Value_of_Care-Hospital.csv&#39;)
+result &lt;- getList(data, &quot;AK&quot;, &quot;pneumonia&quot;, 20000)
+print(result)</code></pre>
+<pre><code>##                            Facility.Name      City                   Address
+## 379   YUKON KUSKOKWIM DELTA REG HOSPITAL    BETHEL                PO BOX 287
+## 383   CENTRAL PENINSULA GENERAL HOSPITAL  SOLDOTNA        250 HOSPITAL PLACE
+## 435             SOUTH PENINSULA HOSPITAL     HOMER          4300 BARTLETT ST
+## 375             ALASKA REGIONAL HOSPITAL ANCHORAGE          2801 DEBARR ROAD
+## 387         ALASKA NATIVE MEDICAL CENTER ANCHORAGE         4315 DIPLOMACY DR
+## 371          FAIRBANKS MEMORIAL HOSPITAL FAIRBANKS        1650 COWLES STREET
+## 359     PROVIDENCE ALASKA MEDICAL CENTER ANCHORAGE     3200 PROVIDENCE DRIVE
+## 363       MAT-SU REGIONAL MEDICAL CENTER    PALMER 2500 SOUTH WOODWORTH LOOP
+## 427 PEACEHEALTH KETCHIKAN MEDICAL CENTER KETCHIKAN       3100 TONGASS AVENUE
+## 367           BARTLETT REGIONAL HOSPITAL    JUNEAU          3260 HOSPITAL DR
+## 439                MT EDGECUMBE HOSPITAL     SITKA            222 TONGASS DR
+##     Lower.Estimate Higher.Estimate
+## 379        $12,021         $18,808
+## 383        $15,593         $19,311
+## 435        $15,607         $19,389
+## 375        $16,031         $19,332
+## 387        $16,233         $19,404
+## 371        $16,618         $19,434
+## 359        $16,798         $19,408
+## 363        $17,199         $19,441
+## 427        $17,376         $19,619
+## 367        $18,143         $19,758
+## 439        $19,201         $21,832</code></pre>
 </div>
 
 
