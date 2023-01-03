@@ -78,10 +78,10 @@ getList <- function(data, state, procedure, money) {
   data <- data[order(data['AvgPayment'], na.last = TRUE, decreasing = FALSE),]
   rows <- which(data$Lower.EstimateTmp < money)
   if (length(rows) == 0) {
-    return(paste("You need - ", min(data$Lower.Estimate)))
+    return(paste("You need -", min(data$Lower.Estimate)))
   } else {
     data <- data[rows,]
-    data <- data %>% select(Facility.Name, City, Address, Lower.Estimate, Higher.Estimate, AvgPayment)
+    data <- data %>% select(Facility.Name, City, Address, Lower.Estimate, Higher.Estimate)
     return(data)
   }
 }
@@ -92,3 +92,10 @@ data <- read.csv('data/Payment_and_Value_of_Care-Hospital.csv')
 result <- getList(data, "AL", "pneumonia", 2000)
 print(result)
 ```
+Продемонстрируем работу на другом примере:
+```{r}
+data <- read.csv('data/Payment_and_Value_of_Care-Hospital.csv')
+result <- getList(data, "AK", "pneumonia", 20000)
+print(result)
+```
+
